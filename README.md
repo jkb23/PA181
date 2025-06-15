@@ -48,4 +48,4 @@ A web application helping users find nearby containers for specific waste types,
 
 ## Team Members
 
-Names:
+Names: Matúš Jakab, Matúš Drahovský, Tomáš Falešník
