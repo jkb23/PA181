@@ -1,6 +1,10 @@
 import Link from 'next/link';
+import { getServerSession } from "next-auth";
+import { authOptions } from "./api/auth/[...nextauth]/route";
 
-export default function Home() {
+export default async function Home() {
+  const session = await getServerSession(authOptions);
+
   return (
     <div className="container mx-auto px-4 py-8">
       {/* Hero Section */}
@@ -11,6 +15,16 @@ export default function Home() {
         <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-8">
           Najděte nejbližší kontejnery na tříděný odpad a přispějte k lepšímu životnímu prostředí
         </p>
+        {session ? (
+          <div className="mb-6">
+            <p className="text-lg text-green-700 font-semibold">Vítejte, {session.user?.name || session.user?.email}!</p>
+          </div>
+        ) : (
+          <div className="mb-6 flex justify-center gap-4">
+            <Link href="/login" className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition">Přihlásit</Link>
+            <Link href="/register" className="bg-white border border-green-600 text-green-600 px-4 py-2 rounded hover:bg-green-50 transition">Registrovat</Link>
+          </div>
+        )}
         <Link 
           href="/mapa"
           className="inline-block bg-green-600 text-white px-8 py-3 rounded-lg text-lg font-semibold hover:bg-green-700 transition-colors"
