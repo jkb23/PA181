@@ -44,30 +44,37 @@ NEXTAUTH_URL="http://localhost:3000"
   node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
   ```
 
-### 3. Start the database with Docker
-Make sure you have Docker Desktop running, then run:
+### 3. Start the project (all-in-one)
+You can use the provided PowerShell script to start everything:
 
 ```powershell
-docker-compose up -d
+./start.ps1
 ```
 
-This will start a PostgreSQL database on port 5433 (to avoid conflicts with any local Postgres).
+This will:
+- Start the Dockerized PostgreSQL database
+- Wait for the database to be ready
+- Run Prisma generate and db push
+- Start the Next.js development server
 
-### 4. Install dependencies
-```bash
-npm install
-```
-
-### 5. Push the Prisma schema to the database
-```bash
-npx prisma generate
-npx prisma db push
-```
-
-### 6. Start the development server
-```bash
-npm run dev
-```
+### 4. Manual steps (if you prefer)
+- Start the database with Docker:
+  ```powershell
+  docker-compose up -d
+  ```
+- Install dependencies:
+  ```bash
+  npm install
+  ```
+- Push the Prisma schema to the database:
+  ```bash
+  npx prisma generate
+  npx prisma db push
+  ```
+- Start the development server:
+  ```bash
+  npm run dev
+  ```
 
 Open [http://localhost:3000](http://localhost:3000) in your browser to see the app.
 
