@@ -227,10 +227,10 @@ export default function BlogPage() {
           </div>
         ) : (
           posts.map((post) => (
-            <div key={post.id} className="bg-white p-6 rounded-lg shadow-md">
+            <div key={post.id} className="bg-white p-6 rounded-lg shadow-md dark:bg-gray-800 dark:text-white">
               <h3 className="text-xl font-bold mb-2">{post.title}</h3>
-              <p className="text-gray-600 mb-4 whitespace-pre-wrap">{post.content}</p>
-              <div className="text-sm text-gray-500 mb-4">
+              <p className="text-gray-600 mb-4 whitespace-pre-wrap dark:text-gray-200">{post.content}</p>
+              <div className="text-sm text-gray-500 mb-4 dark:text-gray-300">
                 Autor: {post.author.name} • {new Date(post.createdAt).toLocaleDateString("cs-CZ")}
               </div>
               <div className="flex flex-wrap gap-2 mb-4">
@@ -242,8 +242,8 @@ export default function BlogPage() {
                       post.reactions.some(
                         (r) => r.type === type && r.userId === session?.user?.id
                       )
-                        ? "bg-green-100 text-green-800"
-                        : "bg-gray-100 text-gray-800 hover:bg-gray-200"
+                        ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
+                        : "bg-gray-100 text-gray-800 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
                     }`}
                   >
                     {REACTION_EMOJIS[type]} ({post.reactions.filter(r => r.type === type).length})
@@ -253,12 +253,12 @@ export default function BlogPage() {
               <div className="mt-4">
                 <h4 className="font-bold mb-2">Odpovědi ({post.replies.length})</h4>
                 {post.replies.length === 0 ? (
-                  <p className="text-gray-500 text-sm">Zatím nejsou žádné odpovědi.</p>
+                  <p className="text-gray-500 text-sm dark:text-gray-300">Zatím nejsou žádné odpovědi.</p>
                 ) : (
                   post.replies.map((reply) => (
-                    <div key={reply.id} className="bg-gray-50 p-3 rounded mb-2">
+                    <div key={reply.id} className="bg-gray-50 p-3 rounded mb-2 dark:bg-gray-700 dark:text-gray-200">
                       <p className="whitespace-pre-wrap">{reply.content}</p>
-                      <div className="text-sm text-gray-500">
+                      <div className="text-sm text-gray-500 dark:text-gray-300">
                         {reply.author.name} • {new Date(reply.createdAt).toLocaleDateString("cs-CZ")}
                       </div>
                     </div>
@@ -277,12 +277,12 @@ export default function BlogPage() {
                     <textarea
                       name="reply"
                       placeholder="Napište odpověď..."
-                      className="w-full p-2 border rounded"
+                      className="w-full p-2 border rounded dark:bg-gray-800 dark:text-white"
                       required
                     />
                     <button
                       type="submit"
-                      className="mt-2 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-500"
+                      className="mt-2 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-500 dark:bg-green-700 dark:hover:bg-green-600"
                     >
                       Odeslat odpověď
                     </button>
