@@ -4,12 +4,17 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSession, signOut } from "next-auth/react";
+import { useTranslation } from '../app/providers';
+import { SessionProvider } from "next-auth/react";
+
 
 export default function Navigation() {
   const [isOpen, setIsOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
+  const [langDropdown, setLangDropdown] = useState(false);
   const pathname = usePathname();
   const { data: session, status } = useSession();
+  const { lang, setLang, t } = useTranslation();
 
   useEffect(() => {
     // On mount, check localStorage and set dark mode
@@ -36,6 +41,12 @@ export default function Navigation() {
     });
   };
 
+  const languages = [
+    { code: 'cs', label: 'Čeština', flag: '🇨🇿' },
+    { code: 'sk', label: 'Slovenčina', flag: '🇸🇰' },
+    { code: 'en', label: 'English', flag: '🇬🇧' },
+  ];
+
   const navItems = [
     { name: 'Domů', path: '/' },
     { name: 'Mapa', path: '/mapa' },
@@ -48,11 +59,35 @@ export default function Navigation() {
       <div className="container mx-auto px-4 py-3 flex justify-between items-center">
         <div className="flex items-center gap-6">
           <Link href="/" className="text-xl font-bold text-green-600 dark:text-green-400">Kam s tím?</Link>
-          <Link href="/blog" className="hover:text-green-600 dark:hover:text-green-400">Blog</Link>
-          <Link href="/mapa" className="hover:text-green-600 dark:hover:text-green-400">Mapa</Link>
-          <Link href="/o-projektu" className="hover:text-green-600 dark:hover:text-green-400">O projektu</Link>
+          <Link href="/blog" className="hover:text-green-600 dark:hover:text-green-400">{t('blog')}</Link>
+          <Link href="/mapa" className="hover:text-green-600 dark:hover:text-green-400">{t('map')}</Link>
+          <Link href="/o-projektu" className="hover:text-green-600 dark:hover:text-green-400">{t('about')}</Link>
         </div>
         <div className="flex items-center gap-4">
+          <div className="relative">
+            <button
+              onClick={() => setLangDropdown((v) => !v)}
+              aria-label="Změnit jazyk"
+              className="text-2xl focus:outline-none hover:text-green-600 transition"
+            >
+              <span role="img" aria-label="language-flag" className="text-2xl">
+                {languages.find(l => l.code === lang)?.flag || '🌐'}
+              </span>
+            </button>
+            {langDropdown && (
+              <div className="absolute right-0 mt-2 w-20 bg-white dark:bg-gray-800 rounded shadow-lg z-50">
+                {languages.map((l) => (
+                  <button
+                    key={l.code}
+                    onClick={() => { setLang(l.code); setLangDropdown(false); }}
+                    className={`w-full flex items-center justify-center px-4 py-2 text-left hover:bg-green-100 dark:hover:bg-gray-700 ${lang === l.code ? 'font-bold' : ''}`}
+                  >
+                    <span role="img" aria-label={l.label} className="text-2xl">{l.flag}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
           <button
             onClick={toggleDarkMode}
             aria-label={darkMode ? 'Přepnout na světlý režim' : 'Přepnout na tmavý režim'}
@@ -67,13 +102,13 @@ export default function Navigation() {
                 onClick={() => signOut({ callbackUrl: "/" })}
                 className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition"
               >
-                Odhlásit
+                {t('logout')}
               </button>
             </>
           ) : (
             <>
-              <Link href="/login" className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition">Přihlásit</Link>
-              <Link href="/register" className="bg-white border border-green-600 text-green-600 px-4 py-2 rounded hover:bg-green-50 transition">Registrovat</Link>
+              <Link href="/login" className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition">{t('login')}</Link>
+              <Link href="/register" className="bg-white border border-green-600 text-green-600 px-4 py-2 rounded hover:bg-green-50 transition">{t('register')}</Link>
             </>
           )}
         </div>

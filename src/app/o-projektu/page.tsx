@@ -1,29 +1,31 @@
+"use client";
+import { useTranslation } from '../providers';
+
 export default function AboutPage() {
+  const { t } = useTranslation();
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-3xl mx-auto">
         <header className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-green-600 mb-4">O projektu</h1>
+          <h1 className="text-4xl font-bold text-green-600 mb-4">{t('about')}</h1>
           <p className="text-xl text-gray-600 dark:text-gray-100">
-            Pomáháme lidem třídit odpad a žít udržitelněji
+            {t('share_experience')}
           </p>
         </header>
 
         <div className="prose prose-lg mx-auto">
           <section className="mb-12">
-            <h2 className="text-2xl font-semibold text-gray-800 mb-4 dark:text-gray-100">Naše mise</h2>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4 dark:text-gray-100">{t('our_mission')}</h2>
             <p className="text-gray-600 mb-4 dark:text-gray-300">
-              Projekt "Kam s tím?" vznikl s cílem zjednodušit třídění odpadu a podpořit udržitelný životní styl. 
-              Věříme, že každý malý krok k lepšímu životnímu prostředí má smysl.
+              {t('mission_text1')}
             </p>
             <p className="text-gray-600 dark:text-gray-300">
-              Naším cílem je vytvořit komunitu lidí, kteří se aktivně zajímají o životní prostředí a chtějí 
-              přispět k jeho ochraně.
+              {t('mission_text2')}
             </p>
           </section>
 
           <section className="mb-12">
-            <h2 className="text-2xl font-semibold text-gray-800 mb-6 dark:text-gray-100">Co nabízíme</h2>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-6 dark:text-gray-100">{t('what_we_offer')}</h2>
             <div className="grid gap-6">
               <div className="bg-white p-6 rounded-lg shadow-md dark:bg-gray-800 dark:text-white">
                 <div className="flex items-start">
@@ -34,8 +36,8 @@ export default function AboutPage() {
                     </svg>
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-800 mb-2 dark:text-gray-100">Interaktivní mapa kontejnerů</h3>
-                    <p className="text-gray-600 dark:text-gray-300">Najděte nejbližší kontejnery na tříděný odpad ve vašem okolí</p>
+                    <h3 className="text-lg font-semibold text-gray-800 mb-2 dark:text-gray-100">{t('interactive_map_tile')}</h3>
+                    <p className="text-gray-600 dark:text-gray-300">{t('find_nearest_tile')}</p>
                   </div>
                 </div>
               </div>
@@ -48,8 +50,8 @@ export default function AboutPage() {
                     </svg>
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-800 mb-2 dark:text-gray-100">Aktuální informace</h3>
-                    <p className="text-gray-600 dark:text-gray-300">Sdílejte a získávejte informace o stavu kontejnerů</p>
+                    <h3 className="text-lg font-semibold text-gray-800 mb-2 dark:text-gray-100">{t('current_info')}</h3>
+                    <p className="text-gray-600 dark:text-gray-300">{t('share_info')}</p>
                   </div>
                 </div>
               </div>
@@ -62,8 +64,8 @@ export default function AboutPage() {
                     </svg>
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-800 mb-2 dark:text-gray-100">Eko komunita</h3>
-                    <p className="text-gray-600 dark:text-gray-300">Sdílejte tipy a nápady s ostatními ekologicky smýšlejícími lidmi</p>
+                    <h3 className="text-lg font-semibold text-gray-800 mb-2 dark:text-gray-100">{t('eco_community_about')}</h3>
+                    <p className="text-gray-600 dark:text-gray-300">{t('share_tips_about')}</p>
                   </div>
                 </div>
               </div>
@@ -71,14 +73,14 @@ export default function AboutPage() {
           </section>
 
           <section>
-            <h2 className="text-2xl font-semibold text-gray-800 mb-4 dark:text-gray-100">Kontakt</h2>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4 dark:text-gray-100">{t('contact')}</h2>
             <p className="text-gray-600 mb-4 dark:text-gray-300">
-              Máte nějaké otázky nebo návrhy? Neváhejte nás kontaktovat!
+              {t('contact_text')}
             </p>
             <div className="bg-green-50 rounded-lg p-6 dark:bg-gray-900">
               <p className="text-gray-600 dark:text-gray-300">
-                Email: info@kamsitim.cz<br />
-                Telefon: +420 123 456 789
+                {t('email')}: info@kamsitim.cz<br />
+                {t('phone')}: +420 123 456 789
               </p>
             </div>
           </section>
