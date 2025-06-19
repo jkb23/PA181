@@ -1,61 +1,156 @@
 "use client";
-import { useTranslation } from '../providers';
+import dynamic from 'next/dynamic';
+import { useState, useRef, useEffect } from 'react';
+import { MapControlContext } from '../../components/LeafletMap';
+
+const LeafletMap = dynamic(() => import('../../components/LeafletMap'), { ssr: false });
+
+declare global {
+  interface Window {
+    __leafletMapControlContext?: any;
+  }
+}
 
 export default function MapPage() {
-  const { t } = useTranslation();
+  const [selectedWasteType, setSelectedWasteType] = useState('');
+  const [location, setLocation] = useState('');
+  const mapControlRef = useRef<any>(null);
+
+  // Access MapControlContext from LeafletMap
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      // Wait for LeafletMap to mount and provide context
+      setTimeout(() => {
+        mapControlRef.current = window.__leafletMapControlContext;
+      }, 500);
+    }
+  }, []);
+
+  // Waste type change handler
+  const handleWasteTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedWasteType(e.target.value);
+    if (mapControlRef.current?.setWasteType) {
+      mapControlRef.current.setWasteType(e.target.value);
+    }
+  };
+
+  // Location search handler
+  const handleSearch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!location) return;
+    
+    try {
+      // Construct a more specific search query for Brno
+      const searchAddress = location.toLowerCase().includes('brno') ? location : `${location}, Brno`;
+      console.log('Searching for address:', searchAddress);
+
+      // Use only the allowed combination of parameters
+      const params = new URLSearchParams({
+        format: 'json',
+        q: searchAddress,
+        limit: '5',
+        addressdetails: '1',
+        countrycodes: 'cz'
+      });
+
+      // Add viewbox parameter to prioritize results in Brno area
+      params.append('viewbox', '16.5,49.15,16.7,49.25');
+      params.append('bounded', '1');
+
+      const url = `https://nominatim.openstreetmap.org/search?${params.toString()}`;
+      console.log('Search URL:', url);
+      
+      const res = await fetch(url, {
+        headers: {
+          'User-Agent': 'KamSTim_App/1.0' // Adding user agent as required by Nominatim
+        }
+      });
+      
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+      
+      const data = await res.json();
+      console.log('Search results:', data);
+      
+      if (data && data.length > 0) {
+        // Find the most relevant result in Brno
+        const brnoResult = data.find((item: any) => {
+          const address = item.address || {};
+          const inBrno = address.city === 'Brno' || 
+                        address.town === 'Brno' ||
+                        (item.display_name || '').toLowerCase().includes('brno');
+          console.log('Checking result:', { address, inBrno, item });
+          return inBrno;
+        }) || data[0];
+
+        const { lat, lon, display_name } = brnoResult;
+        console.log('Selected location:', { lat, lon, display_name });
+        
+        if (mapControlRef.current?.searchLocation) {
+          mapControlRef.current.searchLocation([parseFloat(lat), parseFloat(lon)]);
+        }
+      } else {
+        alert('Adresa nenalezena. Zkuste prosím zadat přesnější adresu.');
+      }
+    } catch (error) {
+      console.error('Search error:', error);
+      alert('Chyba při vyhledávání. Zkuste to prosím znovu.');
+    }
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
         {/* Search sidebar */}
         <div className="lg:col-span-1">
           <div className="bg-white rounded-lg shadow-md p-6 dark:bg-gray-800 dark:text-white">
-            <h2 className="text-xl font-semibold text-gray-800 mb-4 dark:text-gray-100">{t('search')}</h2>
-            <div className="space-y-4">
+            <h2 className="text-xl font-semibold text-gray-800 mb-4 dark:text-gray-100">Vyhledávání</h2>
+            <form className="space-y-4" onSubmit={handleSearch}>
               <div>
                 <label htmlFor="waste-type" className="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-200">
-                  {t('waste_type')}
+                  Typ odpadu
                 </label>
                 <select
                   id="waste-type"
+                  value={selectedWasteType}
+                  onChange={handleWasteTypeChange}
                   className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 dark:bg-gray-900 dark:text-white dark:border-gray-700"
                 >
-                  <option value="">{t('select_waste')}</option>
-                  <option value="plast">{t('waste_plast')}</option>
-                  <option value="papir">{t('waste_papir')}</option>
-                  <option value="sklo">{t('waste_sklo')}</option>
-                  <option value="kov">{t('waste_kov')}</option>
-                  <option value="bio">{t('waste_bio')}</option>
+                  <option value="">Vyberte typ odpadu</option>
+                  <option value="Plasty, nápojové kartony a hliníkové plechovky od nápojů">Plast</option>
+                  <option value="Papír">Papír</option>
+                  <option value="Sklo barevné">Sklo</option>
+                  <option value="Kov">Kov</option>
+                  <option value="Biologický odpad">Bioodpad</option>
                 </select>
               </div>
               <div>
                 <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-200">
-                  {t('location')}
+                  Lokalita
                 </label>
                 <input
                   type="text"
                   id="location"
-                  placeholder={t('enter_address')}
+                  value={location}
+                  onChange={e => setLocation(e.target.value)}
+                  placeholder="Zadejte ulici a číslo..."
                   className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 dark:bg-gray-900 dark:text-white dark:border-gray-700"
                 />
               </div>
-              <button className="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors dark:bg-green-700 dark:hover:bg-green-600">
-                {t('search_btn')}
+              <button type="submit" className="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors dark:bg-green-700 dark:hover:bg-green-600">
+                Hledat
               </button>
-            </div>
+            </form>
           </div>
         </div>
         {/* Map container */}
         <div className="lg:col-span-3">
           <div className="bg-white rounded-lg shadow-md p-6 dark:bg-gray-800 dark:text-white">
-            <div className="h-[600px] bg-gray-200 rounded-lg dark:bg-gray-900">
-              {/* Map component will go here */}
-              <p className="text-center text-gray-500 mt-4 dark:text-gray-300">
-                {t('loading_map')}
-              </p>
-            </div>
+            <LeafletMap selectedWasteType={selectedWasteType} />
           </div>
         </div>
       </div>
     </div>
-  )
+  );
 } 

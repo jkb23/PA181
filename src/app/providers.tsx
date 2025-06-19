@@ -82,6 +82,10 @@ const translations: Record<SupportedLang, Record<string, string>> = {
     password: 'Heslo',
     name: 'Jméno',
     full_name: 'Celé jméno',
+    find_my_location: 'Najít moji polohu',
+    finding_location: 'Hledám polohu...',
+    location_error: 'Nepodařilo se najít vaši polohu',
+    your_location: 'Vaše poloha',
   },
   sk: {
     home: 'Domov',
@@ -158,6 +162,10 @@ const translations: Record<SupportedLang, Record<string, string>> = {
     password: 'Heslo',
     name: 'Meno',
     full_name: 'Celé meno',
+    find_my_location: 'Nájsť moju polohu',
+    finding_location: 'Hľadám polohu...',
+    location_error: 'Nepodarilo sa nájsť vašu polohu',
+    your_location: 'Vaša poloha',
   },
   en: {
     home: 'Home',
@@ -234,6 +242,10 @@ const translations: Record<SupportedLang, Record<string, string>> = {
     password: 'Password',
     name: 'Name',
     full_name: 'Full name',
+    find_my_location: 'Find my location',
+    finding_location: 'Finding location...',
+    location_error: 'Could not find your location',
+    your_location: 'Your location',
   },
 };
 

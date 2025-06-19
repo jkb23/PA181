@@ -158,11 +158,11 @@ export default function BlogPage() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-800">{t('blog')}</h1>
+        <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-100">{t('blog')}</h1>
         {session && (
           <button
             onClick={() => setShowNewPostForm(!showNewPostForm)}
-            className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-500"
+            className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-500 dark:bg-green-700 dark:hover:bg-green-600"
           >
             {showNewPostForm ? t('cancel') : t('new_post')}
           </button>
@@ -170,21 +170,21 @@ export default function BlogPage() {
       </div>
 
       {error && (
-        <div className="mb-4 p-4 bg-red-100 text-red-700 rounded">
+        <div className="mb-4 p-4 bg-red-100 text-red-700 rounded dark:bg-red-900 dark:text-red-200">
           {error}
         </div>
       )}
 
       {session && showNewPostForm && (
-        <form onSubmit={handleCreatePost} className="mb-8 bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-2xl font-bold mb-4">{t('create_post')}</h2>
+        <form onSubmit={handleCreatePost} className="mb-8 bg-white p-6 rounded-lg shadow-md dark:bg-gray-800">
+          <h2 className="text-2xl font-bold mb-4 text-gray-800 dark:text-gray-100">{t('create_post')}</h2>
           <div className="mb-4">
             <input
               type="text"
               placeholder={t('post_title')}
               value={newPost.title}
               onChange={(e) => setNewPost({ ...newPost, title: e.target.value })}
-              className="w-full p-2 border rounded"
+              className="w-full p-2 border rounded border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
               required
             />
           </div>
@@ -193,7 +193,7 @@ export default function BlogPage() {
               placeholder={t('post_content')}
               value={newPost.content}
               onChange={(e) => setNewPost({ ...newPost, content: e.target.value })}
-              className="w-full p-2 border rounded h-32"
+              className="w-full p-2 border rounded h-32 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
               required
             />
           </div>
@@ -201,7 +201,7 @@ export default function BlogPage() {
             <button
               type="button"
               onClick={() => setShowNewPostForm(false)}
-              className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100"
+              className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-700"
             >
               {t('cancel')}
             </button>
