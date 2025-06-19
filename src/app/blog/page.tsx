@@ -14,7 +14,36 @@ interface Post {
     name: string;
     email: string;
   };
+  reactions: {
+    id: string;
+    type: string;
+    userId: string;
+    user: {
+      id: string;
+      name: string;
+      email: string;
+    };
+  }[];
+  replies: {
+    id: string;
+    content: string;
+    createdAt: string;
+    author: {
+      id: string;
+      name: string;
+      email: string;
+    };
+  }[];
 }
+
+const REACTION_EMOJIS: Record<string, string> = {
+  LIKE: "👍",
+  LOVE: "❤️",
+  LAUGH: "😂",
+  WOW: "😮",
+  SAD: "😢",
+  ANGRY: "😡",
+};
 
 export default function BlogPage() {
   const { data: session } = useSession();
@@ -76,6 +105,54 @@ export default function BlogPage() {
     } catch (error) {
       console.error("Error creating post:", error);
       setError("Nepodařilo se vytvořit příspěvek");
+    }
+  };
+
+  const handleReaction = async (postId: string, type: string) => {
+    if (!session) {
+      router.push("/login");
+      return;
+    }
+    try {
+      setError(null);
+      const response = await fetch(`/api/posts/${postId}/reactions`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ type }),
+      });
+      if (!response.ok) {
+        throw new Error("Nepodařilo se přidat reakci");
+      }
+      fetchPosts();
+    } catch (error) {
+      console.error("Error adding reaction:", error);
+      setError("Nepodařilo se přidat reakci");
+    }
+  };
+
+  const handleReply = async (postId: string, content: string) => {
+    if (!session) {
+      router.push("/login");
+      return;
+    }
+    try {
+      setError(null);
+      const response = await fetch(`/api/posts/${postId}/replies`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ content }),
+      });
+      if (!response.ok) {
+        throw new Error("Nepodařilo se přidat odpověď");
+      }
+      fetchPosts();
+    } catch (error) {
+      console.error("Error adding reply:", error);
+      setError("Nepodařilo se přidat odpověď");
     }
   };
 
@@ -155,6 +232,62 @@ export default function BlogPage() {
               <p className="text-gray-600 mb-4 whitespace-pre-wrap">{post.content}</p>
               <div className="text-sm text-gray-500 mb-4">
                 Autor: {post.author.name} • {new Date(post.createdAt).toLocaleDateString("cs-CZ")}
+              </div>
+              <div className="flex flex-wrap gap-2 mb-4">
+                {["LIKE", "LOVE", "LAUGH", "WOW", "SAD", "ANGRY"].map((type) => (
+                  <button
+                    key={type}
+                    onClick={() => handleReaction(post.id, type)}
+                    className={`px-3 py-1 rounded transition-colors ${
+                      post.reactions.some(
+                        (r) => r.type === type && r.userId === session?.user?.id
+                      )
+                        ? "bg-green-100 text-green-800"
+                        : "bg-gray-100 text-gray-800 hover:bg-gray-200"
+                    }`}
+                  >
+                    {REACTION_EMOJIS[type]} ({post.reactions.filter(r => r.type === type).length})
+                  </button>
+                ))}
+              </div>
+              <div className="mt-4">
+                <h4 className="font-bold mb-2">Odpovědi ({post.replies.length})</h4>
+                {post.replies.length === 0 ? (
+                  <p className="text-gray-500 text-sm">Zatím nejsou žádné odpovědi.</p>
+                ) : (
+                  post.replies.map((reply) => (
+                    <div key={reply.id} className="bg-gray-50 p-3 rounded mb-2">
+                      <p className="whitespace-pre-wrap">{reply.content}</p>
+                      <div className="text-sm text-gray-500">
+                        {reply.author.name} • {new Date(reply.createdAt).toLocaleDateString("cs-CZ")}
+                      </div>
+                    </div>
+                  ))
+                )}
+                {session && (
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      const content = (e.target as HTMLFormElement).reply.value;
+                      handleReply(post.id, content);
+                      (e.target as HTMLFormElement).reply.value = "";
+                    }}
+                    className="mt-2"
+                  >
+                    <textarea
+                      name="reply"
+                      placeholder="Napište odpověď..."
+                      className="w-full p-2 border rounded"
+                      required
+                    />
+                    <button
+                      type="submit"
+                      className="mt-2 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-500"
+                    >
+                      Odeslat odpověď
+                    </button>
+                  </form>
+                )}
               </div>
             </div>
           ))
