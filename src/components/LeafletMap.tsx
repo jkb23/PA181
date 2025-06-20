@@ -8,6 +8,8 @@ import {
   MutableRefObject,
   useMemo,
   useCallback,
+  forwardRef,
+  useImperativeHandle,
 } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
@@ -245,100 +247,90 @@ function MapInstanceController({
   return null;
 }
 
-export const MapControlContext = createContext<{
-  setWasteType?: (type: string) => void;
-  searchLocation?: (coords: [number, number]) => void;
-}>({});
+export interface MapControlHandle {
+  setWasteType: (type: string) => void;
+  searchLocation: (coords: [number, number]) => void;
+}
 
-export default function LeafletMap({
-  selectedWasteType,
-}: {
-  selectedWasteType?: string;
-}) {
-  const { t } = useTranslation();
-  const [features, setFeatures] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const mapRef = useRef<L.Map | null>(null);
-  const [wasteType, setWasteType] = useState<string | undefined>(
-    selectedWasteType
-  );
-  const [searchMarker, setSearchMarker] = useState<[number, number] | null>(
-    null
-  );
-  const [isClient, setIsClient] = useState(false);
+const LeafletMap = forwardRef<MapControlHandle, { selectedWasteType?: string }>(
+  ({ selectedWasteType }, ref) => {
+    const { t } = useTranslation();
+    const [features, setFeatures] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const mapRef = useRef<L.Map | null>(null);
+    const [wasteType, setWasteType] = useState<string | undefined>(
+      selectedWasteType
+    );
+    const [searchMarker, setSearchMarker] = useState<[number, number] | null>(
+      null
+    );
+    const [isClient, setIsClient] = useState(false);
 
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
+    useEffect(() => {
+      setIsClient(true);
+    }, []);
 
-  useEffect(() => {
-    fetch("/api/containers")
-      .then((res) => res.json())
-      .then((data) => {
-        setFeatures(data.features || []);
-        setLoading(false);
-      })
-      .catch(() => {
-        setError("Failed to load containers");
-        setLoading(false);
-      });
-  }, []);
+    useEffect(() => {
+      setWasteType(selectedWasteType);
+    }, [selectedWasteType]);
 
-  const searchLocation = useCallback((coords: [number, number]) => {
-    console.log("Updating map location to:", coords);
-    if (mapRef.current) {
-      mapRef.current.setView(coords, 17);
-      setSearchMarker(coords);
-    } else {
-      console.error("Map reference not available");
-    }
-  }, []);
+    useEffect(() => {
+      fetch("/api/containers")
+        .then((res) => res.json())
+        .then((data) => {
+          setFeatures(data.features || []);
+          setLoading(false);
+        })
+        .catch(() => {
+          setError("Failed to load containers");
+          setLoading(false);
+        });
+    }, []);
 
-  // Allow parent to control filtering and search
-  const contextValue = useMemo(
-    () => ({
+    const searchLocation = useCallback((coords: [number, number]) => {
+      console.log("Updating map location to:", coords);
+      if (mapRef.current) {
+        mapRef.current.setView(coords, 17);
+        setSearchMarker(coords);
+      } else {
+        console.error("Map reference not available");
+      }
+    }, []);
+
+    // Expose control functions to parent component
+    useImperativeHandle(ref, () => ({
       setWasteType,
       searchLocation,
-    }),
-    [searchLocation]
-  );
+    }));
 
-  // Make context available globally for the parent
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      window.__leafletMapControlContext = contextValue;
-    }
-  }, [contextValue]);
+    // Filter features by waste type
+    const filteredFeatures = useMemo(
+      () =>
+        wasteType
+          ? features.filter(
+              (f) => f.properties?.komodita_odpad_separovany === wasteType
+            )
+          : features,
+      [features, wasteType]
+    );
 
-  // Filter features by waste type
-  const filteredFeatures = useMemo(
-    () =>
-      wasteType
-        ? features.filter(
-            (f) => f.properties?.komodita_odpad_separovany === wasteType
-          )
-        : features,
-    [features, wasteType]
-  );
+    const redIcon = useMemo(
+      () =>
+        new Icon({
+          iconUrl:
+            "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png",
+          iconSize: [25, 41],
+          iconAnchor: [12, 41],
+          popupAnchor: [1, -34],
+          shadowUrl:
+            "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
+          shadowSize: [41, 41],
+        }),
+      []
+    );
 
-  const redIcon = useMemo(
-    () =>
-      new Icon({
-        iconUrl:
-          "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png",
-        iconSize: [25, 41],
-        iconAnchor: [12, 41],
-        popupAnchor: [1, -34],
-        shadowUrl:
-          "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
-        shadowSize: [41, 41],
-      }),
-    []
-  );
-
-  return (
-    <MapControlContext.Provider value={contextValue}>
+    return (
       <div className="h-[600px] bg-gray-200 rounded-lg dark:bg-gray-900 relative">
         {isClient && (
           <MapContainer
@@ -384,6 +376,10 @@ export default function LeafletMap({
         )}
         {error && <p className="text-center text-red-500 mt-4">{error}</p>}
       </div>
-    </MapControlContext.Provider>
-  );
-}
+    );
+  }
+);
+
+LeafletMap.displayName = "LeafletMap";
+
+export default LeafletMap;
