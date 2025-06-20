@@ -6,6 +6,8 @@ import {
   createContext,
   useContext,
   MutableRefObject,
+  useMemo,
+  useCallback,
 } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
@@ -283,19 +285,24 @@ export default function LeafletMap({
       });
   }, []);
 
+  const searchLocation = useCallback((coords: [number, number]) => {
+    console.log("Updating map location to:", coords);
+    if (mapRef.current) {
+      mapRef.current.setView(coords, 17);
+      setSearchMarker(coords);
+    } else {
+      console.error("Map reference not available");
+    }
+  }, []);
+
   // Allow parent to control filtering and search
-  const contextValue = {
-    setWasteType,
-    searchLocation: (coords: [number, number]) => {
-      console.log("Updating map location to:", coords);
-      if (mapRef.current) {
-        mapRef.current.setView(coords, 17);
-        setSearchMarker(coords);
-      } else {
-        console.error("Map reference not available");
-      }
-    },
-  };
+  const contextValue = useMemo(
+    () => ({
+      setWasteType,
+      searchLocation,
+    }),
+    [searchLocation]
+  );
 
   // Make context available globally for the parent
   useEffect(() => {
@@ -305,11 +312,30 @@ export default function LeafletMap({
   }, [contextValue]);
 
   // Filter features by waste type
-  const filteredFeatures = wasteType
-    ? features.filter(
-        (f) => f.properties?.komodita_odpad_separovany === wasteType
-      )
-    : features;
+  const filteredFeatures = useMemo(
+    () =>
+      wasteType
+        ? features.filter(
+            (f) => f.properties?.komodita_odpad_separovany === wasteType
+          )
+        : features,
+    [features, wasteType]
+  );
+
+  const redIcon = useMemo(
+    () =>
+      new Icon({
+        iconUrl:
+          "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png",
+        iconSize: [25, 41],
+        iconAnchor: [12, 41],
+        popupAnchor: [1, -34],
+        shadowUrl:
+          "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
+        shadowSize: [41, 41],
+      }),
+    []
+  );
 
   return (
     <MapControlContext.Provider value={contextValue}>
@@ -329,25 +355,11 @@ export default function LeafletMap({
             />
             <LocationButton />
             {searchMarker && (
-              <Marker
-                position={searchMarker}
-                icon={
-                  new Icon({
-                    iconUrl:
-                      "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png",
-                    iconSize: [25, 41],
-                    iconAnchor: [12, 41],
-                    popupAnchor: [1, -34],
-                    shadowUrl:
-                      "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
-                    shadowSize: [41, 41],
-                  })
-                }
-              >
+              <Marker position={searchMarker} icon={redIcon}>
                 <Popup>Hledaná lokalita</Popup>
               </Marker>
             )}
-            <MarkerClusterGroup>
+            <MarkerClusterGroup chunkedLoading>
               {filteredFeatures.map((feature, idx) => {
                 if (feature.geometry.type !== "Point") return null;
                 const [lng, lat] = feature.geometry.coordinates;
