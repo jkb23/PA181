@@ -3,14 +3,7 @@ import { getServerSession } from "next-auth";
 import { prisma } from "@/lib/prisma";
 import { authOptions } from "../../../auth/[...nextauth]/authOptions";
 
-/**
- * @param {Request} req
- * @param {{ params: { postId: string } }} context
- */
-export async function POST(
-  req: Request,
-  context: { params: { postId: string } }
-) {
+export async function POST(req: Request) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user) {
@@ -18,7 +11,9 @@ export async function POST(
     }
 
     const { type } = await req.json();
-    const { postId } = context.params;
+    const url = new URL(req.url);
+    const postId = url.pathname.split("/")[3];
+    console.log(url.pathname);
 
     if (!type) {
       return new NextResponse("Chybí typ reakce", { status: 400 });
@@ -72,4 +67,4 @@ export async function POST(
     console.error("[REACTIONS_POST]", error);
     return new NextResponse("Internal error", { status: 500 });
   }
-} 
+}

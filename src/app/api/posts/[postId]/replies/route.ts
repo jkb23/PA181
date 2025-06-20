@@ -3,10 +3,7 @@ import { getServerSession } from "next-auth";
 import { prisma } from "@/lib/prisma";
 import { authOptions } from "../../../auth/[...nextauth]/authOptions";
 
-export async function POST(
-  req: Request,
-  { params }: { params: { postId: string } }
-) {
+export async function POST(req: Request) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user) {
@@ -14,7 +11,8 @@ export async function POST(
     }
 
     const { content } = await req.json();
-    const { postId } = params;
+    const url = new URL(req.url);
+    const postId = url.pathname.split("/")[3];
 
     if (!content) {
       return new NextResponse("Chybí obsah odpovědi", { status: 400 });
@@ -42,4 +40,4 @@ export async function POST(
     console.error("[REPLIES_POST]", error);
     return new NextResponse("Internal error", { status: 500 });
   }
-} 
+}
