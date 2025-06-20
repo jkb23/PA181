@@ -3,9 +3,13 @@ import { getServerSession } from "next-auth";
 import { prisma } from "@/lib/prisma";
 import { authOptions } from "../../../auth/[...nextauth]/authOptions";
 
+/**
+ * @param {Request} req
+ * @param {{ params: { postId: string } }} context
+ */
 export async function POST(
   req: Request,
-  { params }: { params: { postId: string } }
+  context: { params: { postId: string } }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -14,7 +18,7 @@ export async function POST(
     }
 
     const { type } = await req.json();
-    const { postId } = params;
+    const { postId } = context.params;
 
     if (!type) {
       return new NextResponse("Chybí typ reakce", { status: 400 });
